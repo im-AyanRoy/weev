@@ -1,5 +1,6 @@
-import 'package:weev/weev.dart' as weev;
+import 'package:weev/cli/weev_cli.dart';
 
-void main(List<String> arguments) {
-  print('Hello world: ${weev.calculate()}!');
+void main(List<String> args) {
+  WeevCLI.run(args);
 }
+
