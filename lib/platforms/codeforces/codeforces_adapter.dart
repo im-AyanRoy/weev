@@ -9,10 +9,34 @@ class CodeforcesAdapter extends PlatformAdapter {
   @override
   Future<List<Activity>> fetchActivity(String username) async {
     final submissions =
-        await CodeforcesApi.getSubmissions(username);
+        await CodeforcesApi.fetchSubmissions(username);
 
-    // Placeholder aggregation
-    return submissions.isEmpty ? [] : [];
+    final Map<DateTime, int> dailyCount = {};
+
+    for (final sub in submissions) {
+      if (sub['verdict'] != 'OK') continue;
+
+      final ts = sub['creationTimeSeconds'] * 1000;
+      final date =
+          DateTime.fromMillisecondsSinceEpoch(ts);
+      final day = DateTime(date.year, date.month, date.day);
+
+      dailyCount.update(
+        day,
+        (v) => v + 1,
+        ifAbsent: () => 1,
+      );
+    }
+
+    return dailyCount.entries
+        .map(
+          (e) => Activity(
+            e.key,
+            'codeforces',
+            e.value,
+          ),
+        )
+        .toList();
   }
 }
 

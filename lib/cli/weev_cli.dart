@@ -1,8 +1,10 @@
 import 'package:args/args.dart';
+
 import 'commands/init.dart';
 import 'commands/stats.dart';
 import 'commands/platforms.dart';
 import 'commands/reset.dart';
+import 'commands/sync.dart';
 
 class WeevCLI {
   static void run(List<String> args) {
@@ -12,6 +14,7 @@ class WeevCLI {
     parser.addCommand('stats');
     parser.addCommand('platforms');
     parser.addCommand('reset');
+    parser.addCommand('sync'); // 👈 ADD THIS
 
     final result = parser.parse(args);
 
@@ -28,6 +31,9 @@ class WeevCLI {
       case 'reset':
         ResetCommand.run();
         break;
+      case 'sync': // 👈 ADD THIS
+        SyncCommand.run();
+        break;
       default:
         _help();
     }
@@ -41,6 +47,7 @@ Commands:
   weev init        One-time setup
   weev stats       Show stats
   weev platforms   Manage platforms
+  weev sync        Fetch real-time data
   weev reset       Reset configuration
 ''');
   }
