@@ -2,27 +2,52 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class LeetCodeApi {
-  static const _url = 'https://leetcode.com/graphql';
+  static const String _url = 'https://leetcode.com/graphql';
 
+  /// Internal HTTP helper (private)
   static Future<Map<String, dynamic>> _post(
-      String query, Map<String, dynamic> variables) async {
+    String query,
+    Map<String, dynamic> variables,
+  ) async {
     final response = await http.post(
       Uri.parse(_url),
-      headers: {'Content-Type': 'application/json'},
+      headers: const {
+        'Content-Type': 'application/json',
+        'Referer': 'https://leetcode.com',
+      },
       body: jsonEncode({
         'query': query,
         'variables': variables,
       }),
     );
 
-    return jsonDecode(response.body);
+    if (response.statusCode != 200) {
+      throw Exception(
+        'LeetCode API error ${response.statusCode}: ${response.body}',
+      );
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Invalid LeetCode API response');
+    }
+
+    return decoded;
   }
 
-  /// Total solved + difficulty breakdown
+  /// ✅ PUBLIC raw GraphQL access (used by stats service)
+  static Future<Map<String, dynamic>> postRaw(
+    String query,
+    Map<String, dynamic> variables,
+  ) {
+    return _post(query, variables);
+  }
+
+  /// ✅ Total solved + difficulty breakdown
   static Future<Map<String, int>> fetchSolved(String username) async {
-    const query = '''
-      query getUserProfile(\$username: String!) {
-        matchedUser(username: \$username) {
+    const query = r'''
+      query getUserProfile($username: String!) {
+        matchedUser(username: $username) {
           submitStats {
             acSubmissionNum {
               difficulty
@@ -34,21 +59,23 @@ class LeetCodeApi {
     ''';
 
     final data = await _post(query, {'username': username});
-    final list =
-        data['data']['matchedUser']['submitStats']['acSubmissionNum'];
+
+    final list = data['data']?['matchedUser']?['submitStats']
+        ?['acSubmissionNum'] as List?;
+
+    if (list == null) return {};
 
     return {
       for (final d in list)
-        d['difficulty'] as String: d['count'] as int
+        d['difficulty'] as String: d['count'] as int,
     };
   }
 
-  /// Daily activity (for heatmap / stats)
-  static Future<Map<DateTime, int>> fetchCalendar(
-      String username) async {
-    const query = '''
-      query submissionCalendar(\$username: String!) {
-        matchedUser(username: \$username) {
+  /// ✅ Daily activity calendar (used for Active Days)
+  static Future<Map<DateTime, int>> fetchCalendar(String username) async {
+    const query = r'''
+      query submissionCalendar($username: String!) {
+        matchedUser(username: $username) {
           submissionCalendar
         }
       }
@@ -56,18 +83,19 @@ class LeetCodeApi {
 
     final data = await _post(query, {'username': username});
 
-    // 🔥 IMPORTANT: this is a STRING, not a map
     final rawCalendar =
-        data['data']['matchedUser']['submissionCalendar'];
+        data['data']?['matchedUser']?['submissionCalendar'];
 
-    // Decode string → Map
-    final decoded =
-        jsonDecode(rawCalendar) as Map<String, dynamic>;
+    if (rawCalendar == null || rawCalendar is! String) {
+      return {};
+    }
+
+    final decoded = jsonDecode(rawCalendar) as Map<String, dynamic>;
 
     return decoded.map<DateTime, int>((k, v) {
       final date = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(k) * 1000);
-
+        int.parse(k) * 1000,
+      );
       return MapEntry(
         DateTime(date.year, date.month, date.day),
         v as int,
