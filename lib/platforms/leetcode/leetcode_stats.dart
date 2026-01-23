@@ -3,33 +3,97 @@ import 'leetcode_api.dart';
 
 class LeetCodeStatsService {
   static Future<PlatformStats> fetch(String username) async {
-    final solvedByDifficulty =
-        await LeetCodeApi.fetchSolved(username);
+    // -------------------------------
+    // Solved + difficulty
+    // -------------------------------
+    final solved = await LeetCodeApi.fetchSolved(username);
 
-    final calendar =
-        await LeetCodeApi.fetchCalendar(username);
+    // -------------------------------
+    // Calendar → active days
+    // -------------------------------
+    final calendar = await LeetCodeApi.fetchCalendar(username);
+    final activeDays = calendar.length;
 
-    final int solved =
-        solvedByDifficulty['All'] ?? 0;
+    // -------------------------------
+    // Profile + contest stats
+    // -------------------------------
+    const profileQuery = r'''
+      query getUserProfile($username: String!) {
+        matchedUser(username: $username) {
+          submitStatsGlobal {
+            totalSubmissionNum {
+              difficulty
+              count
+            }
+          }
+        }
+        userContestRanking(username: $username) {
+          rating
+          attendedContestsCount
+        }
+        userContestRankingHistory(username: $username) {
+          rating
+        }
+      }
+    ''';
 
-    final int easy =
-        solvedByDifficulty['Easy'] ?? 0;
-    final int medium =
-        solvedByDifficulty['Medium'] ?? 0;
-    final int hard =
-        solvedByDifficulty['Hard'] ?? 0;
+    /// 🔥 FIX IS HERE — USE postRaw(), NOT _post()
+    final data = await LeetCodeApi.postRaw(
+      profileQuery,
+      {'username': username},
+    );
 
-    final int activeDays = calendar.length;
+    final matchedUser = data['data']?['matchedUser'];
+    final contest = data['data']?['userContestRanking'];
+    final history = data['data']?['userContestRankingHistory'];
 
+    // -------------------------------
+    // Total submissions
+    // -------------------------------
+    int totalSubmissions = 0;
+    final totalSubsList =
+        matchedUser?['submitStatsGlobal']?['totalSubmissionNum'];
+
+    if (totalSubsList is List) {
+      for (final e in totalSubsList) {
+        if (e['difficulty'] == 'All') {
+          totalSubmissions = e['count'] ?? 0;
+        }
+      }
+    }
+
+    // -------------------------------
+    // Contest stats
+    // -------------------------------
+    final int totalContests =
+        contest?['attendedContestsCount'] ?? 0;
+
+    final double? currentRating =
+        (contest?['rating'] as num?)?.toDouble();
+
+    double? maxRating;
+    if (history is List && history.isNotEmpty) {
+      maxRating = history
+          .map<double>((e) => (e['rating'] as num?)?.toDouble() ?? 0)
+          .reduce((a, b) => a > b ? a : b);
+    }
+
+    // -------------------------------
+    // Return stats
+    // -------------------------------
     return PlatformStats(
       platform: 'leetcode',
       data: {
-        'Problems Solved': solved,
+        'Problems Solved': solved['All'] ?? 0,
+        'Submissions': totalSubmissions,
         'Active Days': activeDays,
+        'Current Rating': currentRating?.toInt(),
+        'Highest Rating': maxRating?.toInt(),
+        'Total Contests': totalContests,
         'Difficulty': {
-          'Easy': easy,
-          'Medium': medium,
-          'Hard': hard,
+          'Easy': solved['Easy'] ?? 0,
+          'Medium': solved['Medium'] ?? 0,
+          'Hard': solved['Hard'] ?? 0,
         },
       },
     );

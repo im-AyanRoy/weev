@@ -25,6 +25,7 @@ class StatsCommand {
       _print(stats, config.platforms['leetcode']!);
     }
 
+    // AFTER leetcode block
     if (config.platforms.containsKey('github') &&
         config.tokens.containsKey('github')) {
       final stats = await GitHubStatsService.fetch(
@@ -33,6 +34,7 @@ class StatsCommand {
       );
       _print(stats, config.platforms['github']!);
     }
+
   }
 
   static void _print(
