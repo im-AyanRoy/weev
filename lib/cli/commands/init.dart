@@ -10,9 +10,12 @@ class InitCommand {
 
     // IMPORTANT: iterate supportedPlatforms, not adapters
     for (final platform in PlatformRegistry.supportedPlatforms) {
-      final promptText = platform == 'cses'
-          ? 'Enter CSES user ID (numeric, leave empty to skip)'
-          : 'Enter username for $platform (leave empty to skip)';
+      final promptText =
+          platform == 'cses'
+              ? 'Enter CSES user ID (numeric, leave empty to skip)'
+              : platform == 'interviewbit'
+                  ? 'Enter InterviewBit username (leave empty to skip)'
+                  : 'Enter username for $platform (leave empty to skip)';
 
       final username = Prompt.ask(promptText);
 

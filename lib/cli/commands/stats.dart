@@ -10,6 +10,7 @@ import '../../platforms/atcoder/atcoder_stats.dart';
 import '../../utils/github_heatmap_renderer.dart';
 import '../../platforms/codechef/codechef_stats.dart';
 import '../../platforms/cses/cses_stats.dart';
+import '../../platforms/interviewbit/interviewbit_stats.dart';
 
 class StatsCommand {
   static Future<void> run(List<String> args) async {
@@ -112,6 +113,21 @@ class StatsCommand {
         print('Error: Unable to fetch CSES stats\n');
       }
     }
+
+    // interviewbit
+
+    if (config.platforms.containsKey('interviewbit')) {
+      try {
+        final stats = await InterviewBitStatsService.fetch(
+          config.platforms['interviewbit']!,
+        );
+        _print(stats, config.platforms['interviewbit']!);
+      } catch (e) {
+        print('🔷 INTERVIEWBIT (${config.platforms['interviewbit']!})');
+        print('Error: Unable to fetch InterviewBit stats\n');
+      }
+    }
+
   }
 
   static bool _shouldShow(

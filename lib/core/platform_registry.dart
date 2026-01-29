@@ -14,6 +14,7 @@ class PlatformRegistry {
     'atcoder',
     'codechef', // ✅ ADD THIS
     'cses',
+    'interviewbit',
   ];
 
   /// Platforms that have activity adapters
@@ -23,5 +24,6 @@ class PlatformRegistry {
   'github': GitHubAdapter(),
   'gitlab': GitLabAdapter(),
   'codechef': CodeChefAdapter(), // ✅ ADD THIS
+  'interviewbit': null,
 };
 }
