@@ -1,9 +1,12 @@
 import '../../services/config_service.dart';
 import '../../models/platform_stats.dart';
+
 import '../../platforms/codeforces/codeforces_stats.dart';
 import '../../platforms/leetcode/leetcode_stats.dart';
 import '../../platforms/github/github_stats.dart';
 import '../../platforms/gitlab/gitlab_stats.dart';
+import '../../platforms/atcoder/atcoder_stats.dart';
+
 import '../../utils/github_heatmap_renderer.dart';
 
 class StatsCommand {
@@ -12,6 +15,9 @@ class StatsCommand {
 
     print('📊 Weev Full Stats\n');
 
+    // ─────────────────────────────
+    // Codeforces
+    // ─────────────────────────────
     if (config.platforms.containsKey('codeforces')) {
       final stats = await CodeforcesStatsService.fetch(
         config.platforms['codeforces']!,
@@ -19,6 +25,9 @@ class StatsCommand {
       _print(stats, config.platforms['codeforces']!);
     }
 
+    // ─────────────────────────────
+    // LeetCode
+    // ─────────────────────────────
     if (config.platforms.containsKey('leetcode')) {
       final stats = await LeetCodeStatsService.fetch(
         config.platforms['leetcode']!,
@@ -26,7 +35,9 @@ class StatsCommand {
       _print(stats, config.platforms['leetcode']!);
     }
 
-    // AFTER leetcode block
+    // ─────────────────────────────
+    // GitHub
+    // ─────────────────────────────
     if (config.platforms.containsKey('github') &&
         config.tokens.containsKey('github')) {
       final stats = await GitHubStatsService.fetch(
@@ -36,6 +47,9 @@ class StatsCommand {
       _print(stats, config.platforms['github']!);
     }
 
+    // ─────────────────────────────
+    // GitLab
+    // ─────────────────────────────
     if (config.platforms.containsKey('gitlab')) {
       final stats = await GitLabStatsService.fetch(
         config.platforms['gitlab']!,
@@ -44,6 +58,15 @@ class StatsCommand {
       _print(stats, config.platforms['gitlab']!);
     }
 
+    // ─────────────────────────────
+    // AtCoder (STATS ONLY)
+    // ─────────────────────────────
+    if (config.platforms.containsKey('atcoder')) {
+      final stats = await AtCoderStatsService.fetch(
+        config.platforms['atcoder']!,
+      );
+      _print(stats, config.platforms['atcoder']!);
+    }
   }
 
   static void _print(
@@ -53,7 +76,7 @@ class StatsCommand {
     print('🔷 ${stats.platform.toUpperCase()} ($username)');
 
     for (final entry in stats.data.entries) {
-      // 🔥 Special handling for GitHub heatmap
+      // GitHub heatmap special handling
       if (entry.key == 'Heatmap' &&
           entry.value is Map<String, int>) {
         print('Heatmap:');
@@ -63,7 +86,6 @@ class StatsCommand {
         continue;
       }
 
-      // Normal map fields (difficulty, etc.)
       if (entry.value is Map) {
         print('${entry.key}:');
         (entry.value as Map).forEach(

@@ -8,23 +8,24 @@ class InitCommand {
 
     print('Initializing Weev...\n');
 
-    for (final platform in PlatformRegistry.adapters.keys) {
+    // IMPORTANT: iterate supportedPlatforms, not adapters
+    for (final platform in PlatformRegistry.supportedPlatforms) {
       final username = Prompt.ask(
         'Enter username for $platform (leave empty to skip)',
       );
 
-      if (username.isEmpty) continue;
+      if (username.trim().isEmpty) continue;
 
-      config.platforms[platform] = username;
+      config.platforms[platform] = username.trim();
 
-      // 🔑 Ask token ONLY for GitHub
+      // 🔑 Tokens only where needed
       if (platform == 'github') {
         final token = Prompt.ask(
           'Enter GitHub token (leave empty to skip)',
         );
 
-        if (token.isNotEmpty) {
-          config.tokens['github'] = token;
+        if (token.trim().isNotEmpty) {
+          config.tokens['github'] = token.trim();
         }
       }
 
@@ -33,8 +34,8 @@ class InitCommand {
           'Enter GitLab token (leave empty to skip)',
         );
 
-        if (token.isNotEmpty) {
-          config.tokens['gitlab'] = token;
+        if (token.trim().isNotEmpty) {
+          config.tokens['gitlab'] = token.trim();
         }
       }
     }
