@@ -12,15 +12,25 @@ import '../../platforms/codechef/codechef_stats.dart';
 import '../../platforms/cses/cses_stats.dart';
 
 class StatsCommand {
-  static Future<void> run() async {
+  static Future<void> run(List<String> args) async {
     final config = await ConfigService.load();
+
+    final requestedPlatform =
+        args.isNotEmpty ? args.first.toLowerCase() : null;
+
+    if (requestedPlatform != null &&
+        !config.platforms.containsKey(requestedPlatform)) {
+      print('❌ Platform "$requestedPlatform" is not configured.');
+      return;
+    }
 
     print('📊 Weev Full Stats\n');
 
     // ─────────────────────────────
     // Codeforces
     // ─────────────────────────────
-    if (config.platforms.containsKey('codeforces')) {
+    if (_shouldShow('codeforces', requestedPlatform) &&
+        config.platforms.containsKey('codeforces')) {
       final stats = await CodeforcesStatsService.fetch(
         config.platforms['codeforces']!,
       );
@@ -30,7 +40,8 @@ class StatsCommand {
     // ─────────────────────────────
     // LeetCode
     // ─────────────────────────────
-    if (config.platforms.containsKey('leetcode')) {
+    if (_shouldShow('leetcode', requestedPlatform) &&
+        config.platforms.containsKey('leetcode')) {
       final stats = await LeetCodeStatsService.fetch(
         config.platforms['leetcode']!,
       );
@@ -40,7 +51,8 @@ class StatsCommand {
     // ─────────────────────────────
     // GitHub
     // ─────────────────────────────
-    if (config.platforms.containsKey('github') &&
+    if (_shouldShow('github', requestedPlatform) &&
+        config.platforms.containsKey('github') &&
         config.tokens.containsKey('github')) {
       final stats = await GitHubStatsService.fetch(
         config.platforms['github']!,
@@ -52,7 +64,8 @@ class StatsCommand {
     // ─────────────────────────────
     // GitLab
     // ─────────────────────────────
-    if (config.platforms.containsKey('gitlab')) {
+    if (_shouldShow('gitlab', requestedPlatform) &&
+        config.platforms.containsKey('gitlab')) {
       final stats = await GitLabStatsService.fetch(
         config.platforms['gitlab']!,
         token: config.tokens['gitlab'],
@@ -61,30 +74,34 @@ class StatsCommand {
     }
 
     // ─────────────────────────────
-    // AtCoder (STATS ONLY)
+    // AtCoder
     // ─────────────────────────────
-    if (config.platforms.containsKey('atcoder')) {
+    if (_shouldShow('atcoder', requestedPlatform) &&
+        config.platforms.containsKey('atcoder')) {
       final stats = await AtCoderStatsService.fetch(
         config.platforms['atcoder']!,
       );
       _print(stats, config.platforms['atcoder']!);
     }
 
-    //codechef
-    if (config.platforms.containsKey('codechef')) {
+    // ─────────────────────────────
+    // CodeChef
+    // ─────────────────────────────
+    if (_shouldShow('codechef', requestedPlatform) &&
+        config.platforms.containsKey('codechef')) {
       final stats = await CodeChefStatsService.fetch(
         config.platforms['codechef']!,
       );
-
       if (stats != null) {
         _print(stats, config.platforms['codechef']!);
       }
     }
 
     // ─────────────────────────────
-    // CSES (STATS ONLY, SAFE)
+    // CSES
     // ─────────────────────────────
-    if (config.platforms.containsKey('cses')) {
+    if (_shouldShow('cses', requestedPlatform) &&
+        config.platforms.containsKey('cses')) {
       try {
         final stats = await CsesStatsService.fetch(
           config.platforms['cses']!,
@@ -97,6 +114,13 @@ class StatsCommand {
     }
   }
 
+  static bool _shouldShow(
+    String platform,
+    String? requested,
+  ) {
+    return requested == null || requested == platform;
+  }
+
   static void _print(
     PlatformStats stats,
     String username,
@@ -104,7 +128,6 @@ class StatsCommand {
     print('🔷 ${stats.platform.toUpperCase()} ($username)');
 
     for (final entry in stats.data.entries) {
-      // GitHub heatmap special handling
       if (entry.key == 'Heatmap' && entry.value is Map<String, int>) {
         print('Heatmap:');
         GitHubHeatmapRenderer.render(

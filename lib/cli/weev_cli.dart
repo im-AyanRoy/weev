@@ -18,12 +18,15 @@ class WeevCLI {
 
     final result = parser.parse(args);
 
-    switch (result.command?.name) {
+    final commandName =
+    result.command?.name?.toLowerCase();
+
+    switch (commandName) {
       case 'init':
         InitCommand.run();
         break;
       case 'stats':
-        StatsCommand.run();
+        StatsCommand.run(result.command!.arguments);
         break;
       case 'platforms':
         PlatformsCommand.run();
@@ -52,4 +55,3 @@ Commands:
 ''');
   }
 }
-
