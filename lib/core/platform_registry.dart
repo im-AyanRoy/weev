@@ -2,6 +2,7 @@ import '../platforms/codeforces/codeforces_adapter.dart';
 import '../platforms/leetcode/leetcode_adapter.dart';
 import '../platforms/github/github_adapter.dart';
 import '../platforms/gitlab/gitlab_adapter.dart';
+import '../platforms/codechef/codechef_adapter.dart';
 
 class PlatformRegistry {
   /// Platforms shown in `weev init`
@@ -10,15 +11,16 @@ class PlatformRegistry {
     'leetcode',
     'github',
     'gitlab',
-    'atcoder', // ✅ added (stats-only)
+    'atcoder',
+    'codechef', // ✅ ADD THIS
   ];
 
   /// Platforms that have activity adapters
   static final adapters = {
-    'codeforces': CodeforcesAdapter(),
-    'leetcode': LeetCodeAdapter(),
-    'github': GitHubAdapter(),
-    'gitlab': GitLabAdapter(),
-  };
+  'codeforces': CodeforcesAdapter(),
+  'leetcode': LeetCodeAdapter(),
+  'github': GitHubAdapter(),
+  'gitlab': GitLabAdapter(),
+  'codechef': CodeChefAdapter(), // ✅ ADD THIS
+};
 }
-

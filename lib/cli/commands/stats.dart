@@ -8,6 +8,7 @@ import '../../platforms/gitlab/gitlab_stats.dart';
 import '../../platforms/atcoder/atcoder_stats.dart';
 
 import '../../utils/github_heatmap_renderer.dart';
+import '../../platforms/codechef/codechef_stats.dart';
 
 class StatsCommand {
   static Future<void> run() async {
@@ -67,6 +68,17 @@ class StatsCommand {
       );
       _print(stats, config.platforms['atcoder']!);
     }
+
+    //codechef
+    if (config.platforms.containsKey('codechef')) {
+      final stats = await CodeChefStatsService.fetch(
+        config.platforms['codechef']!,
+      );
+
+      if (stats != null) {
+        _print(stats, config.platforms['codechef']!);
+      }
+    }
   }
 
   static void _print(
@@ -77,8 +89,7 @@ class StatsCommand {
 
     for (final entry in stats.data.entries) {
       // GitHub heatmap special handling
-      if (entry.key == 'Heatmap' &&
-          entry.value is Map<String, int>) {
+      if (entry.key == 'Heatmap' && entry.value is Map<String, int>) {
         print('Heatmap:');
         GitHubHeatmapRenderer.render(
           entry.value as Map<String, int>,
@@ -99,4 +110,3 @@ class StatsCommand {
     print('');
   }
 }
-
