@@ -64,12 +64,6 @@ class CodeChefScraper {
         'Stars': user['stars'] ??
             user['ratingStar'] ??
             'N/A',
-        'Global Rank': pickInt(
-            ['globalRank', 'global_rank']),
-        'Country Rank': pickInt(
-            ['countryRank', 'country_rank', 'indiaRank']),
-        'Problems Solved': pickInt(
-            ['problemsSolved', 'totalSolved', 'fullySolved']),
       };
     }
 
@@ -137,9 +131,6 @@ class CodeChefScraper {
       'Rating': extractIntBySelector('.rating-number'),
       'Max Rating': extractIntBySelector('.rating-header small'),
       'Stars': extractTextBySelector('.rating-star'),
-      'Global Rank': extractRankFromStatsGrid('global'),
-      'Country Rank': extractRankFromStatsGrid('india'),
-      'Problems Solved': extractSolvedCount(),
     };
   }
 }
